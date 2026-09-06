@@ -19,13 +19,27 @@ const avatarStorage = new CloudinaryStorage({
 
 const postStorage = new CloudinaryStorage({
   cloudinary,
-  params: async (req, file) => ({
-    folder: 'yunfit/posts',
-    resource_type: file.mimetype.startsWith('video') ? 'video' : 'image',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4', 'webm', 'mov'],
-    quality: 'auto',
-    fetch_format: file.mimetype.startsWith('video') ? undefined : 'auto',
-  }),
+  params: async (req, file) => {
+    const isVideo = file.mimetype.startsWith('video');
+    if (isVideo) {
+      return {
+        folder: 'yunfit/posts',
+        resource_type: 'video',
+        allowed_formats: ['mp4', 'webm', 'mov'],
+        // Compress on ingest: scale to max 854×480, low quality, h264
+        transformation: [
+          { width: 854, height: 480, crop: 'limit', quality: 'auto:low', video_codec: 'auto' },
+        ],
+      };
+    }
+    return {
+      folder: 'yunfit/posts',
+      resource_type: 'image',
+      allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+      quality: 'auto',
+      fetch_format: 'auto',
+    };
+  },
 });
 
 const fileFilter = (req, file, cb) => {
@@ -42,7 +56,7 @@ const uploadAvatar = multer({
 const uploadPost = multer({
   storage: postStorage,
   fileFilter,
-  limits: { fileSize: 100 * 1024 * 1024 },
+  limits: { fileSize: 50 * 1024 * 1024 },  // 50 MB — videos max 30s stay well under
 });
 
 module.exports = { uploadAvatar, uploadPost, cloudinary };
