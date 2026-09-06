@@ -11,12 +11,12 @@ async function seed() {
 
   const admin = await User.create({
     firstName: 'Admin', lastName: 'Yunfit', email: 'admin@yunfit.fr',
-    passwordHash: adminHash, role: 'admin', language: 'fr',
+    passwordHash: adminHash, role: 'admin', language: 'fr', surveyCompleted: true,
   });
 
   const coach = await User.create({
     firstName: 'Jean', lastName: 'Dupont', email: 'coach@yunfit.fr',
-    passwordHash: coachHash, role: 'coach', language: 'fr',
+    passwordHash: coachHash, role: 'coach', language: 'fr', surveyCompleted: true,
     bio: 'Coach certifié avec 10 ans d\'expérience en musculation et fitness.',
   });
 

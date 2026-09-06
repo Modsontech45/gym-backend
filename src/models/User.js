@@ -22,6 +22,7 @@ const User = sequelize.define('User', {
   experienceLevel: { type: DataTypes.ENUM('debutant', 'intermediaire', 'avance'), defaultValue: 'debutant' },
   language: { type: DataTypes.ENUM('fr', 'en'), defaultValue: 'fr' },
   isActive: { type: DataTypes.BOOLEAN, defaultValue: true },
+  surveyCompleted: { type: DataTypes.BOOLEAN, defaultValue: false },
   lastLoginAt: { type: DataTypes.DATE },
 }, {
   tableName: 'users',

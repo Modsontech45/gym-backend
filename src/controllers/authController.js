@@ -79,7 +79,7 @@ exports.updateProfile = async (req, res) => {
 exports.saveSurvey = async (req, res) => {
   try {
     const { fitnessGoal, coachPreference, bodyType, experienceLevel } = req.body;
-    await req.user.update({ fitnessGoal, coachPreference, bodyType, experienceLevel });
+    await req.user.update({ fitnessGoal, coachPreference, bodyType, experienceLevel, surveyCompleted: true });
     const { passwordHash: _, ...userOut } = req.user.toJSON();
     res.json(userOut);
   } catch (err) {
