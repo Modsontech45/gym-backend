@@ -9,5 +9,6 @@ router.delete('/:id', authenticate, c.deletePost);
 router.post('/:id/like', authenticate, c.likePost);
 router.get('/:id/comments', authenticate, c.getComments);
 router.post('/:id/comments', authenticate, c.addComment);
+router.delete('/:id/comments/:commentId', authenticate, c.deleteComment);
 
 module.exports = router;
