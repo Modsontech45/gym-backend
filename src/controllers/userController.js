@@ -73,6 +73,35 @@ exports.deleteClient = async (req, res) => {
   }
 };
 
+exports.getAllCoaches = async (req, res) => {
+  try {
+    const coaches = await User.findAll({
+      where: { role: ['admin', 'coach'] },
+      attributes: { exclude: ['passwordHash'] },
+      order: [['createdAt', 'DESC']],
+    });
+    res.json(coaches);
+  } catch (err) {
+    res.status(500).json({ message: 'Erreur serveur', error: err.message });
+  }
+};
+
+exports.createCoach = async (req, res) => {
+  try {
+    const { firstName, lastName, email, phone, language = 'fr' } = req.body;
+    const exists = await User.findOne({ where: { email } });
+    if (exists) return res.status(409).json({ message: 'Email déjà utilisé' });
+
+    const tempPassword = 'Gym2024!';
+    const passwordHash = await bcrypt.hash(tempPassword, 12);
+    const user = await User.create({ firstName, lastName, email, passwordHash, phone, language, role: 'coach' });
+    const { passwordHash: _, ...userOut } = user.toJSON();
+    res.status(201).json({ ...userOut, tempPassword });
+  } catch (err) {
+    res.status(500).json({ message: 'Erreur serveur', error: err.message });
+  }
+};
+
 exports.getStats = async (req, res) => {
   try {
     const totalClients = await User.count({ where: { role: 'client', isActive: true } });
