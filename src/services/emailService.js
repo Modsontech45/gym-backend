@@ -185,6 +185,46 @@ exports.sendClientCreated = ({ firstName, email, tempPassword, coachName }) =>
     `),
   });
 
+exports.sendVerificationCode = ({ firstName, email, code }) =>
+  sendEmail({
+    to: email,
+    subject: '🔐 Votre code de vérification Yunfit',
+    html: layout('Vérification de compte', `
+      <h2 style="margin:0 0 8px;color:#0f172a;font-size:22px;">Bonjour ${firstName} 👋</h2>
+      <p style="margin:0 0 20px;color:#475569;line-height:1.6;">
+        Pour finaliser la création de votre compte Yunfit, entrez le code ci-dessous dans l'application.
+        Ce code expire dans <strong>10 minutes</strong>.
+      </p>
+      <div style="background:#fff7ed;border:2px solid #f97316;border-radius:12px;padding:28px;text-align:center;">
+        <p style="margin:0 0 8px;color:#92400e;font-size:13px;text-transform:uppercase;letter-spacing:2px;">Votre code</p>
+        <p style="margin:0;color:#f97316;font-size:42px;font-weight:900;letter-spacing:10px;">${code}</p>
+      </div>
+      <p style="margin:20px 0 0;color:#94a3b8;font-size:12px;">
+        Si vous n'avez pas créé de compte, ignorez cet email.
+      </p>
+    `),
+  });
+
+exports.sendPasswordReset = ({ firstName, email, code }) =>
+  sendEmail({
+    to: email,
+    subject: '🔑 Réinitialisation de votre mot de passe',
+    html: layout('Réinitialisation du mot de passe', `
+      <h2 style="margin:0 0 8px;color:#0f172a;font-size:22px;">Réinitialisation du mot de passe</h2>
+      <p style="margin:0 0 20px;color:#475569;line-height:1.6;">
+        Bonjour ${firstName}, vous avez demandé à réinitialiser votre mot de passe Yunfit.
+        Entrez le code ci-dessous. Il expire dans <strong>15 minutes</strong>.
+      </p>
+      <div style="background:#fef2f2;border:2px solid #ef4444;border-radius:12px;padding:28px;text-align:center;">
+        <p style="margin:0 0 8px;color:#991b1b;font-size:13px;text-transform:uppercase;letter-spacing:2px;">Code de réinitialisation</p>
+        <p style="margin:0;color:#ef4444;font-size:42px;font-weight:900;letter-spacing:10px;">${code}</p>
+      </div>
+      <p style="margin:20px 0 0;color:#94a3b8;font-size:12px;">
+        Si vous n'avez pas demandé cette réinitialisation, ignorez cet email — votre mot de passe reste inchangé.
+      </p>
+    `),
+  });
+
 exports.sendPasswordChanged = ({ firstName, email }) =>
   sendEmail({
     to: email,

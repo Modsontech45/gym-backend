@@ -24,6 +24,12 @@ const User = sequelize.define('User', {
   isActive: { type: DataTypes.BOOLEAN, defaultValue: true },
   surveyCompleted: { type: DataTypes.BOOLEAN, defaultValue: false },
   lastLoginAt: { type: DataTypes.DATE },
+  isEmailVerified: { type: DataTypes.BOOLEAN, defaultValue: false },
+  emailVerificationCode: { type: DataTypes.STRING(6) },
+  emailVerificationExpiry: { type: DataTypes.DATE },
+  passwordResetCode: { type: DataTypes.STRING(6) },
+  passwordResetExpiry: { type: DataTypes.DATE },
+  aiPlan: { type: DataTypes.TEXT },
 }, {
   tableName: 'users',
   timestamps: true,
