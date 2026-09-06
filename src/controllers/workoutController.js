@@ -1,0 +1,89 @@
+const { WorkoutProgram, WorkoutSession, Exercise, SessionLog, User } = require('../models');
+
+exports.getClientPrograms = async (req, res) => {
+  try {
+    const clientId = req.params.clientId || req.user.id;
+    const programs = await WorkoutProgram.findAll({
+      where: { clientId },
+      include: [
+        { association: 'sessions', include: ['exercises'], order: [['orderIndex', 'ASC']] },
+        { association: 'coach', attributes: ['id', 'firstName', 'lastName', 'avatar'] },
+      ],
+      order: [['createdAt', 'DESC']],
+    });
+    res.json(programs);
+  } catch (err) {
+    res.status(500).json({ message: 'Erreur serveur', error: err.message });
+  }
+};
+
+exports.createProgram = async (req, res) => {
+  try {
+    const { clientId, name, description, goal, frequencyPerWeek, durationWeeks, startDate, endDate } = req.body;
+    const program = await WorkoutProgram.create({
+      clientId, coachId: req.user.id, name, description, goal,
+      frequencyPerWeek, durationWeeks, startDate, endDate,
+    });
+    res.status(201).json(program);
+  } catch (err) {
+    res.status(500).json({ message: 'Erreur serveur', error: err.message });
+  }
+};
+
+exports.updateProgram = async (req, res) => {
+  try {
+    const program = await WorkoutProgram.findByPk(req.params.id);
+    if (!program) return res.status(404).json({ message: 'Programme introuvable' });
+    await program.update(req.body);
+    res.json(program);
+  } catch (err) {
+    res.status(500).json({ message: 'Erreur serveur', error: err.message });
+  }
+};
+
+exports.addSession = async (req, res) => {
+  try {
+    const { programId, name, dayOfWeek, durationMinutes, muscleGroups, notes, orderIndex } = req.body;
+    const session = await WorkoutSession.create({ programId, name, dayOfWeek, durationMinutes, muscleGroups, notes, orderIndex });
+    res.status(201).json(session);
+  } catch (err) {
+    res.status(500).json({ message: 'Erreur serveur', error: err.message });
+  }
+};
+
+exports.addExercise = async (req, res) => {
+  try {
+    const { sessionId, name, sets, reps, restSeconds, weight, videoUrl, notes, orderIndex } = req.body;
+    const exercise = await Exercise.create({ sessionId, name, sets, reps, restSeconds, weight, videoUrl, notes, orderIndex });
+    res.status(201).json(exercise);
+  } catch (err) {
+    res.status(500).json({ message: 'Erreur serveur', error: err.message });
+  }
+};
+
+exports.logSession = async (req, res) => {
+  try {
+    const { sessionId, durationMinutes, notes, rating } = req.body;
+    const log = await SessionLog.create({
+      userId: req.user.id, sessionId, durationMinutes, notes, rating, completedAt: new Date(),
+    });
+    res.status(201).json(log);
+  } catch (err) {
+    res.status(500).json({ message: 'Erreur serveur', error: err.message });
+  }
+};
+
+exports.getSessionLogs = async (req, res) => {
+  try {
+    const userId = req.params.userId || req.user.id;
+    const logs = await SessionLog.findAll({
+      where: { userId },
+      include: [{ association: 'WorkoutSession', include: ['WorkoutProgram'] }],
+      order: [['completedAt', 'DESC']],
+      limit: 50,
+    });
+    res.json(logs);
+  } catch (err) {
+    res.status(500).json({ message: 'Erreur serveur', error: err.message });
+  }
+};
