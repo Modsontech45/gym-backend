@@ -1,7 +1,7 @@
 const { Resend } = require('resend');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const FROM = process.env.EMAIL_FROM || 'GymPro <noreply@mail.arenoxempire.com>';
+const FROM = process.env.EMAIL_FROM || 'Yunfit <noreply@mail.arenoxempire.com>';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
 
 // ─── Base layout ────────────────────────────────────────────────────────────
@@ -19,7 +19,7 @@ const layout = (title, body) => `<!DOCTYPE html>
         <!-- Header -->
         <tr>
           <td style="background:#f97316;border-radius:12px 12px 0 0;padding:28px 32px;text-align:center;">
-            <h1 style="margin:0;color:#fff;font-size:26px;font-weight:800;letter-spacing:-0.5px;">💪 GymPro</h1>
+            <h1 style="margin:0;color:#fff;font-size:26px;font-weight:800;letter-spacing:-0.5px;">💪 Yunfit</h1>
             <p style="margin:6px 0 0;color:rgba(255,255,255,0.85);font-size:13px;">Votre plateforme fitness</p>
           </td>
         </tr>
@@ -32,8 +32,8 @@ const layout = (title, body) => `<!DOCTYPE html>
         <!-- Footer -->
         <tr>
           <td style="background:#f1f5f9;border-radius:0 0 12px 12px;border:1px solid #e2e8f0;border-top:none;padding:20px 32px;text-align:center;">
-            <p style="margin:0;color:#64748b;font-size:12px;">© ${new Date().getFullYear()} GymPro · Propulsé par Operals</p>
-            <p style="margin:4px 0 0;color:#94a3b8;font-size:11px;">Vous recevez cet email car vous êtes inscrit sur GymPro.</p>
+            <p style="margin:0;color:#64748b;font-size:12px;">© ${new Date().getFullYear()} Yunfit · Propulsé par Operals</p>
+            <p style="margin:4px 0 0;color:#94a3b8;font-size:11px;">Vous recevez cet email car vous êtes inscrit sur Yunfit.</p>
           </td>
         </tr>
       </table>
@@ -62,11 +62,11 @@ const sendEmail = async ({ to, subject, html }) => {
 exports.sendWelcome = ({ firstName, email }) =>
   sendEmail({
     to: email,
-    subject: '🎉 Bienvenue sur GymPro !',
-    html: layout('Bienvenue sur GymPro', `
+    subject: '🎉 Bienvenue sur Yunfit !',
+    html: layout('Bienvenue sur Yunfit', `
       <h2 style="margin:0 0 8px;color:#0f172a;font-size:22px;">Bonjour ${firstName} 👋</h2>
       <p style="margin:0 0 16px;color:#475569;line-height:1.6;">
-        Votre compte GymPro a été créé avec succès. Vous pouvez dès maintenant suivre vos entraînements,
+        Votre compte Yunfit a été créé avec succès. Vous pouvez dès maintenant suivre vos entraînements,
         consulter vos abonnements et rester en contact avec votre coach.
       </p>
       ${divider()}
@@ -82,7 +82,7 @@ exports.sendNewClientAlert = ({ adminEmail, clientFirstName, clientLastName, cli
     subject: `👤 Nouveau client inscrit : ${clientFirstName} ${clientLastName}`,
     html: layout('Nouveau client inscrit', `
       <h2 style="margin:0 0 8px;color:#0f172a;font-size:22px;">Nouveau client inscrit</h2>
-      <p style="margin:0 0 20px;color:#475569;">Un nouveau client vient de créer un compte sur GymPro.</p>
+      <p style="margin:0 0 20px;color:#475569;">Un nouveau client vient de créer un compte sur Yunfit.</p>
       <table cellpadding="0" cellspacing="0" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:20px;width:100%;">
         <tr><td style="padding:6px 0;color:#64748b;font-size:14px;">Nom</td><td style="padding:6px 0;font-weight:600;color:#0f172a;">${clientFirstName} ${clientLastName}</td></tr>
         <tr><td style="padding:6px 0;color:#64748b;font-size:14px;">Email</td><td style="padding:6px 0;font-weight:600;color:#0f172a;">${clientEmail}</td></tr>
@@ -149,11 +149,11 @@ exports.sendFollowUpScheduled = ({ clientFirstName, clientEmail, coachFirstName,
 exports.sendCoachWelcome = ({ firstName, email, tempPassword }) =>
   sendEmail({
     to: email,
-    subject: '🛡️ Votre accès GymPro — Compte sous-admin créé',
-    html: layout('Accès sous-admin GymPro', `
+    subject: '🛡️ Votre accès Yunfit — Compte sous-admin créé',
+    html: layout('Accès sous-admin Yunfit', `
       <h2 style="margin:0 0 8px;color:#0f172a;font-size:22px;">Bienvenue dans l'équipe, ${firstName} 👋</h2>
       <p style="margin:0 0 20px;color:#475569;line-height:1.6;">
-        Un compte sous-admin vous a été créé sur GymPro. Vous pouvez dès maintenant vous connecter et gérer les membres.
+        Un compte sous-admin vous a été créé sur Yunfit. Vous pouvez dès maintenant vous connecter et gérer les membres.
       </p>
       <table cellpadding="0" cellspacing="0" style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:20px;width:100%;">
         <tr><td style="padding:8px 0;color:#92400e;font-size:14px;width:130px;">Email</td><td style="padding:8px 0;font-weight:700;color:#0f172a;">${email}</td></tr>
@@ -168,11 +168,11 @@ exports.sendCoachWelcome = ({ firstName, email, tempPassword }) =>
 exports.sendClientCreated = ({ firstName, email, tempPassword, coachName }) =>
   sendEmail({
     to: email,
-    subject: '🎉 Votre compte GymPro a été créé',
-    html: layout('Compte GymPro créé', `
+    subject: '🎉 Votre compte Yunfit a été créé',
+    html: layout('Compte Yunfit créé', `
       <h2 style="margin:0 0 8px;color:#0f172a;font-size:22px;">Bonjour ${firstName} 👋</h2>
       <p style="margin:0 0 20px;color:#475569;line-height:1.6;">
-        ${coachName ? `Votre coach <strong>${coachName}</strong> vous a` : 'Un administrateur vous a'} créé un compte sur GymPro.
+        ${coachName ? `Votre coach <strong>${coachName}</strong> vous a` : 'Un administrateur vous a'} créé un compte sur Yunfit.
         Connectez-vous pour accéder à vos programmes et suivre votre progression.
       </p>
       <table cellpadding="0" cellspacing="0" style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:20px;width:100%;">
@@ -191,7 +191,7 @@ exports.sendPasswordChanged = ({ firstName, email }) =>
     subject: '🔐 Mot de passe modifié',
     html: layout('Mot de passe modifié', `
       <h2 style="margin:0 0 8px;color:#0f172a;font-size:22px;">Mot de passe modifié</h2>
-      <p style="margin:0 0 16px;color:#475569;">Bonjour ${firstName}, votre mot de passe GymPro vient d'être modifié avec succès.</p>
+      <p style="margin:0 0 16px;color:#475569;">Bonjour ${firstName}, votre mot de passe Yunfit vient d'être modifié avec succès.</p>
       <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:16px;">
         <p style="margin:0;color:#991b1b;font-size:14px;">
           ⚠️ Si vous n'êtes pas à l'origine de cette modification, contactez immédiatement votre coach ou l'administrateur.

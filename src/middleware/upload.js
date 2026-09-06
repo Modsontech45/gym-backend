@@ -11,7 +11,7 @@ cloudinary.config({
 const avatarStorage = new CloudinaryStorage({
   cloudinary,
   params: {
-    folder: 'gympro/avatars',
+    folder: 'yunfit/avatars',
     allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
     transformation: [{ width: 400, height: 400, crop: 'fill', quality: 'auto', fetch_format: 'auto' }],
   },
@@ -20,7 +20,7 @@ const avatarStorage = new CloudinaryStorage({
 const postStorage = new CloudinaryStorage({
   cloudinary,
   params: async (req, file) => ({
-    folder: 'gympro/posts',
+    folder: 'yunfit/posts',
     resource_type: file.mimetype.startsWith('video') ? 'video' : 'image',
     allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4', 'webm', 'mov'],
     quality: 'auto',

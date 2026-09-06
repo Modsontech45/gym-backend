@@ -10,12 +10,12 @@ async function seed() {
   const clientHash = await bcrypt.hash('Client2024!', 12);
 
   const admin = await User.create({
-    firstName: 'Admin', lastName: 'GymPro', email: 'admin@gympro.fr',
+    firstName: 'Admin', lastName: 'Yunfit', email: 'admin@yunfit.fr',
     passwordHash: adminHash, role: 'admin', language: 'fr',
   });
 
   const coach = await User.create({
-    firstName: 'Jean', lastName: 'Dupont', email: 'coach@gympro.fr',
+    firstName: 'Jean', lastName: 'Dupont', email: 'coach@yunfit.fr',
     passwordHash: coachHash, role: 'coach', language: 'fr',
     bio: 'Coach certifié avec 10 ans d\'expérience en musculation et fitness.',
   });
@@ -45,8 +45,8 @@ async function seed() {
   });
 
   console.log('✅ Données de test créées');
-  console.log('Admin:  admin@gympro.fr / Admin2024!');
-  console.log('Coach:  coach@gympro.fr / Coach2024!');
+  console.log('Admin:  admin@yunfit.fr / Admin2024!');
+  console.log('Coach:  coach@yunfit.fr / Coach2024!');
   console.log('Client: marie@example.fr / Client2024!');
   process.exit(0);
 }
