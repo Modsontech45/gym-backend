@@ -1,4 +1,5 @@
 const { FollowUp, User, Notification } = require('../models');
+const email = require('../services/emailService');
 
 exports.getFollowUps = async (req, res) => {
   try {
@@ -43,10 +44,20 @@ exports.createFollowUp = async (req, res) => {
     const full = await FollowUp.findByPk(followUp.id, {
       include: [
         { association: 'coach', attributes: ['id', 'firstName', 'lastName', 'avatar'] },
-        { association: 'client', attributes: ['id', 'firstName', 'lastName', 'avatar'] },
+        { association: 'client', attributes: ['id', 'firstName', 'lastName', 'avatar', 'email'] },
       ],
     });
     res.status(201).json(full);
+
+    const client = await User.findByPk(clientId);
+    if (client) {
+      email.sendFollowUpScheduled({
+        clientFirstName: client.firstName,
+        clientEmail: client.email,
+        coachFirstName: req.user.firstName,
+        title, note, scheduledDate, priority,
+      });
+    }
   } catch (err) {
     res.status(500).json({ message: 'Erreur serveur', error: err.message });
   }

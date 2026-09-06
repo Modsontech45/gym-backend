@@ -1,4 +1,5 @@
 const { Subscription, User } = require('../models');
+const email = require('../services/emailService');
 
 exports.getClientSubscriptions = async (req, res) => {
   try {
@@ -25,6 +26,14 @@ exports.createSubscription = async (req, res) => {
       startDate, endDate, notes, status: 'actif',
     });
     res.status(201).json(sub);
+    email.sendSubscriptionCreated({
+      firstName: user.firstName,
+      email: user.email,
+      planName, planType,
+      balance: price,
+      sessionsIncluded,
+      startDate, endDate,
+    });
   } catch (err) {
     res.status(500).json({ message: 'Erreur serveur', error: err.message });
   }
@@ -50,6 +59,17 @@ exports.creditBalance = async (req, res) => {
     const newBalance = parseFloat(sub.balance) + parseFloat(amount);
     await sub.update({ balance: newBalance });
     res.json({ ...sub.toJSON(), balance: newBalance });
+
+    const user = await User.findByPk(sub.userId);
+    if (user) {
+      email.sendBalanceCredited({
+        firstName: user.firstName,
+        email: user.email,
+        amount: parseFloat(amount),
+        newBalance,
+        planName: sub.planName,
+      });
+    }
   } catch (err) {
     res.status(500).json({ message: 'Erreur serveur', error: err.message });
   }

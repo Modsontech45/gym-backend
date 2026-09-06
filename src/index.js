@@ -9,13 +9,17 @@ const { sequelize } = require('./models');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: { origin: process.env.CLIENT_URL || '*', credentials: true },
-});
+
+const clientUrl = process.env.CLIENT_URL;
+// When CLIENT_URL is '*' or unset, reflect the request origin (required for credentials)
+const corsOrigin = (!clientUrl || clientUrl === '*') ? true : clientUrl;
+const corsOptions = { origin: corsOrigin, credentials: true };
+
+const io = new Server(server, { cors: corsOptions });
 
 // Middleware
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
-app.use(cors({ origin: process.env.CLIENT_URL || '*', credentials: true }));
+app.use(cors(corsOptions));
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

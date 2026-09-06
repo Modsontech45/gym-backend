@@ -1,22 +1,33 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { User, Subscription } = require('../models');
+const email = require('../services/emailService');
 
 const generateToken = (user) =>
   jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
 
 exports.register = async (req, res) => {
   try {
-    const { firstName, lastName, email, password, phone, language = 'fr' } = req.body;
-    const exists = await User.findOne({ where: { email } });
+    const {
+      firstName, lastName, email: email_, password, phone, language = 'fr',
+      gender, dateOfBirth, height, weight, location, bodyType, fitnessGoal, experienceLevel,
+    } = req.body;
+    const exists = await User.findOne({ where: { email: email_ } });
     if (exists) return res.status(409).json({ message: 'Email déjà utilisé' });
 
     const passwordHash = await bcrypt.hash(password, 12);
-    const user = await User.create({ firstName, lastName, email, passwordHash, phone, language, role: 'client' });
+    const user = await User.create({
+      firstName, lastName, email: email_, passwordHash, phone, language, role: 'client',
+      gender, dateOfBirth, height, weight, location, bodyType, fitnessGoal, experienceLevel,
+    });
 
     const token = generateToken(user);
     const { passwordHash: _, ...userOut } = user.toJSON();
     res.status(201).json({ token, user: userOut });
+
+    // Non-blocking emails
+    email.sendWelcome({ firstName, email: email_ });
+    email.sendNewClientAlert({ clientFirstName: firstName, clientLastName, clientEmail: email_ });
   } catch (err) {
     res.status(500).json({ message: 'Erreur serveur', error: err.message });
   }
@@ -74,6 +85,7 @@ exports.changePassword = async (req, res) => {
     const passwordHash = await bcrypt.hash(newPassword, 12);
     await user.update({ passwordHash });
     res.json({ message: 'Mot de passe modifié avec succès' });
+    email.sendPasswordChanged({ firstName: user.firstName, email: user.email });
   } catch (err) {
     res.status(500).json({ message: 'Erreur serveur', error: err.message });
   }
