@@ -28,6 +28,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/subscriptions', require('./routes/subscriptions'));
+app.use('/api/plans', require('./routes/plans'));
+app.use('/api/promotions', require('./routes/promotions'));
 app.use('/api/posts', require('./routes/posts'));
 app.use('/api/workouts', require('./routes/workouts'));
 app.use('/api/messages', require('./routes/messages'));

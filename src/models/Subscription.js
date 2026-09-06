@@ -5,7 +5,9 @@ const Subscription = sequelize.define('Subscription', {
   id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
   userId: { type: DataTypes.UUID, allowNull: false },
   planName: { type: DataTypes.STRING(100), allowNull: false },
-  planType: { type: DataTypes.ENUM('mensuel', 'trimestriel', 'semestriel', 'annuel'), defaultValue: 'mensuel' },
+  planType: { type: DataTypes.ENUM('journalier', 'hebdomadaire', 'mensuel', 'trimestriel', 'semestriel', 'annuel'), defaultValue: 'mensuel' },
+  planId:   { type: DataTypes.UUID },                      // reference to Plan catalog entry
+  discountAmount: { type: DataTypes.DECIMAL(10, 2), defaultValue: 0 }, // promo discount applied
   price: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
   balance: { type: DataTypes.DECIMAL(10, 2), defaultValue: 0 },
   sessionsIncluded: { type: DataTypes.INTEGER, defaultValue: 0 },

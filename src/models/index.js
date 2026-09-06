@@ -1,6 +1,8 @@
 const sequelize = require('../config/database');
 const User = require('./User');
 const Subscription = require('./Subscription');
+const Plan = require('./Plan');
+const Promotion = require('./Promotion');
 const Post = require('./Post');
 const PostLike = require('./PostLike');
 const PostComment = require('./PostComment');
@@ -60,6 +62,8 @@ module.exports = {
   sequelize,
   User,
   Subscription,
+  Plan,
+  Promotion,
   Post,
   PostLike,
   PostComment,
