@@ -1,7 +1,24 @@
 const bcrypt = require('bcryptjs');
-const { User, Subscription, WorkoutProgram, SessionLog, Measurement } = require('../models');
+const { User, Subscription, WorkoutProgram, SessionLog, Measurement, Post } = require('../models');
 const { Op } = require('sequelize');
 const email = require('../services/emailService');
+
+function calcStreak(dates) {
+  if (!dates.length) return 0;
+  const days = [...new Set(dates.map(d => new Date(d).toISOString().split('T')[0]))]
+    .sort()
+    .reverse();
+  let streak = 0;
+  let cursor = new Date();
+  cursor.setHours(0, 0, 0, 0);
+  for (const day of days) {
+    const d = new Date(day);
+    const diff = Math.round((cursor - d) / 86400000);
+    if (diff <= 1) { streak++; cursor = d; }
+    else break;
+  }
+  return streak;
+}
 
 exports.getAllClients = async (req, res) => {
   try {
@@ -104,6 +121,42 @@ exports.createCoach = async (req, res) => {
     res.status(201).json({ ...userOut, tempPassword });
 
     email.sendCoachWelcome({ firstName, email, tempPassword });
+  } catch (err) {
+    res.status(500).json({ message: 'Erreur serveur', error: err.message });
+  }
+};
+
+exports.getPublicProfile = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.params.id, {
+      attributes: { exclude: ['passwordHash', 'email', 'phone'] },
+    });
+    if (!user) return res.status(404).json({ message: 'Utilisateur introuvable' });
+
+    const [postCount, recentPosts, logs, postDates] = await Promise.all([
+      Post.count({ where: { userId: user.id } }),
+      Post.findAll({
+        where: { userId: user.id },
+        limit: 9,
+        order: [['createdAt', 'DESC']],
+        include: [{ association: 'author', attributes: ['id', 'firstName', 'lastName', 'avatar'] }],
+      }),
+      SessionLog.findAll({ where: { userId: user.id }, attributes: ['completedAt'] }),
+      Post.findAll({ where: { userId: user.id }, attributes: ['createdAt'] }),
+    ]);
+
+    const workoutStreak = calcStreak(logs.map(l => l.completedAt));
+    const postStreak = calcStreak(postDates.map(p => p.createdAt));
+    const totalWorkouts = logs.length;
+
+    res.json({
+      ...user.toJSON(),
+      postCount,
+      recentPosts,
+      workoutStreak,
+      postStreak,
+      totalWorkouts,
+    });
   } catch (err) {
     res.status(500).json({ message: 'Erreur serveur', error: err.message });
   }
