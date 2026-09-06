@@ -10,7 +10,7 @@ exports.register = async (req, res) => {
   try {
     const {
       firstName, lastName, email: email_, password, phone, language = 'fr',
-      gender, dateOfBirth, height, weight, location, bodyType, fitnessGoal, experienceLevel,
+      gender, dateOfBirth, height, weight, location, bodyType, fitnessGoal, experienceLevel, coachPreference,
     } = req.body;
     const exists = await User.findOne({ where: { email: email_ } });
     if (exists) return res.status(409).json({ message: 'Email déjà utilisé' });
@@ -18,7 +18,7 @@ exports.register = async (req, res) => {
     const passwordHash = await bcrypt.hash(password, 12);
     const user = await User.create({
       firstName, lastName, email: email_, passwordHash, phone, language, role: 'client',
-      gender, dateOfBirth, height, weight, location, bodyType, fitnessGoal, experienceLevel,
+      gender, dateOfBirth, height, weight, location, bodyType, fitnessGoal, experienceLevel, coachPreference,
     });
 
     const token = generateToken(user);
@@ -69,6 +69,17 @@ exports.updateProfile = async (req, res) => {
     const updates = { firstName, lastName, phone, bio, fitnessGoal, experienceLevel, language };
     if (req.file) updates.avatar = req.file.path;
     await req.user.update(updates);
+    const { passwordHash: _, ...userOut } = req.user.toJSON();
+    res.json(userOut);
+  } catch (err) {
+    res.status(500).json({ message: 'Erreur serveur', error: err.message });
+  }
+};
+
+exports.saveSurvey = async (req, res) => {
+  try {
+    const { fitnessGoal, coachPreference, bodyType, experienceLevel } = req.body;
+    await req.user.update({ fitnessGoal, coachPreference, bodyType, experienceLevel });
     const { passwordHash: _, ...userOut } = req.user.toJSON();
     res.json(userOut);
   } catch (err) {

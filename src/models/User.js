@@ -17,6 +17,7 @@ const User = sequelize.define('User', {
   weight: { type: DataTypes.DECIMAL(5, 1) },
   location: { type: DataTypes.STRING(255) },
   bodyType: { type: DataTypes.STRING(50) },
+  coachPreference: { type: DataTypes.ENUM('coach', 'autonome'), defaultValue: 'autonome' },
   fitnessGoal: { type: DataTypes.STRING(255) },
   experienceLevel: { type: DataTypes.ENUM('debutant', 'intermediaire', 'avance'), defaultValue: 'debutant' },
   language: { type: DataTypes.ENUM('fr', 'en'), defaultValue: 'fr' },

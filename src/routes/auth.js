@@ -8,5 +8,6 @@ router.post('/login', c.login);
 router.get('/me', authenticate, c.me);
 router.put('/profile', authenticate, uploadAvatar.single('avatar'), c.updateProfile);
 router.put('/password', authenticate, c.changePassword);
+router.post('/survey', authenticate, c.saveSurvey);
 
 module.exports = router;
