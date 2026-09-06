@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const { User, Subscription, WorkoutProgram, SessionLog, Measurement } = require('../models');
 const { Op } = require('sequelize');
+const email = require('../services/emailService');
 
 exports.getAllClients = async (req, res) => {
   try {
@@ -40,10 +41,14 @@ exports.createClient = async (req, res) => {
     const exists = await User.findOne({ where: { email } });
     if (exists) return res.status(409).json({ message: 'Email déjà utilisé' });
 
-    const passwordHash = await bcrypt.hash('Gym2024!', 12); // default password
+    const tempPassword = 'Gym2024!';
+    const passwordHash = await bcrypt.hash(tempPassword, 12);
     const user = await User.create({ firstName, lastName, email, passwordHash, phone, fitnessGoal, experienceLevel, language, role: 'client' });
     const { passwordHash: _, ...userOut } = user.toJSON();
-    res.status(201).json({ ...userOut, tempPassword: 'Gym2024!' });
+    res.status(201).json({ ...userOut, tempPassword });
+
+    const coachName = req.user ? `${req.user.firstName} ${req.user.lastName}` : null;
+    email.sendClientCreated({ firstName, email, tempPassword, coachName });
   } catch (err) {
     res.status(500).json({ message: 'Erreur serveur', error: err.message });
   }
@@ -97,6 +102,8 @@ exports.createCoach = async (req, res) => {
     const user = await User.create({ firstName, lastName, email, passwordHash, phone, language, role: 'coach' });
     const { passwordHash: _, ...userOut } = user.toJSON();
     res.status(201).json({ ...userOut, tempPassword });
+
+    email.sendCoachWelcome({ firstName, email, tempPassword });
   } catch (err) {
     res.status(500).json({ message: 'Erreur serveur', error: err.message });
   }

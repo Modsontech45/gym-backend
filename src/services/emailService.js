@@ -146,6 +146,45 @@ exports.sendFollowUpScheduled = ({ clientFirstName, clientEmail, coachFirstName,
   });
 };
 
+exports.sendCoachWelcome = ({ firstName, email, tempPassword }) =>
+  sendEmail({
+    to: email,
+    subject: '🛡️ Votre accès GymPro — Compte sous-admin créé',
+    html: layout('Accès sous-admin GymPro', `
+      <h2 style="margin:0 0 8px;color:#0f172a;font-size:22px;">Bienvenue dans l'équipe, ${firstName} 👋</h2>
+      <p style="margin:0 0 20px;color:#475569;line-height:1.6;">
+        Un compte sous-admin vous a été créé sur GymPro. Vous pouvez dès maintenant vous connecter et gérer les membres.
+      </p>
+      <table cellpadding="0" cellspacing="0" style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:20px;width:100%;">
+        <tr><td style="padding:8px 0;color:#92400e;font-size:14px;width:130px;">Email</td><td style="padding:8px 0;font-weight:700;color:#0f172a;">${email}</td></tr>
+        <tr><td style="padding:8px 0;color:#92400e;font-size:14px;">Mot de passe</td><td style="padding:8px 0;font-weight:700;color:#f97316;font-size:18px;letter-spacing:1px;">${tempPassword}</td></tr>
+      </table>
+      <p style="margin:16px 0 0;color:#ef4444;font-size:13px;font-weight:600;">
+        ⚠️ Changez ce mot de passe dès votre première connexion dans Profil → Sécurité.
+      </p>
+    `),
+  });
+
+exports.sendClientCreated = ({ firstName, email, tempPassword, coachName }) =>
+  sendEmail({
+    to: email,
+    subject: '🎉 Votre compte GymPro a été créé',
+    html: layout('Compte GymPro créé', `
+      <h2 style="margin:0 0 8px;color:#0f172a;font-size:22px;">Bonjour ${firstName} 👋</h2>
+      <p style="margin:0 0 20px;color:#475569;line-height:1.6;">
+        ${coachName ? `Votre coach <strong>${coachName}</strong> vous a` : 'Un administrateur vous a'} créé un compte sur GymPro.
+        Connectez-vous pour accéder à vos programmes et suivre votre progression.
+      </p>
+      <table cellpadding="0" cellspacing="0" style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:20px;width:100%;">
+        <tr><td style="padding:8px 0;color:#92400e;font-size:14px;width:130px;">Email</td><td style="padding:8px 0;font-weight:700;color:#0f172a;">${email}</td></tr>
+        <tr><td style="padding:8px 0;color:#92400e;font-size:14px;">Mot de passe</td><td style="padding:8px 0;font-weight:700;color:#f97316;font-size:18px;letter-spacing:1px;">${tempPassword}</td></tr>
+      </table>
+      <p style="margin:16px 0 0;color:#ef4444;font-size:13px;font-weight:600;">
+        ⚠️ Changez ce mot de passe dès votre première connexion dans Profil → Sécurité.
+      </p>
+    `),
+  });
+
 exports.sendPasswordChanged = ({ firstName, email }) =>
   sendEmail({
     to: email,
