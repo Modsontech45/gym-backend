@@ -40,6 +40,9 @@ app.use('/api/coach-notes', require('./routes/coachNotes'));
 app.use('/api/check-ins', require('./routes/checkIns'));
 app.use('/api/appointments', require('./routes/appointments'));
 app.use('/api/progress-photos', require('./routes/progressPhotos'));
+app.use('/api/gym', require('./routes/gym'));
+app.use('/api/gym-programs', require('./routes/gymPrograms'));
+app.use('/api/follow', require('./routes/follow'));
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));
 

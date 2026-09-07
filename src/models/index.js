@@ -18,6 +18,11 @@ const CoachNote = require('./CoachNote');
 const CheckIn = require('./CheckIn');
 const Appointment = require('./Appointment');
 const ProgressPhoto = require('./ProgressPhoto');
+const Gym = require('./Gym');
+const GymMembership = require('./GymMembership');
+const GymProgram = require('./GymProgram');
+const Follow = require('./Follow');
+const MembershipPackage = require('./MembershipPackage');
 
 // User associations
 User.hasMany(Subscription, { foreignKey: 'userId', as: 'subscriptions' });
@@ -78,6 +83,29 @@ User.hasMany(Appointment, { foreignKey: 'clientId', as: 'clientAppointments' });
 ProgressPhoto.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 User.hasMany(ProgressPhoto, { foreignKey: 'userId', as: 'progressPhotos' });
 
+// Gym associations
+MembershipPackage.belongsTo(Gym, { foreignKey: 'gymId', as: 'gym' });
+Gym.hasMany(MembershipPackage, { foreignKey: 'gymId', as: 'packages' });
+
+Gym.belongsTo(User, { foreignKey: 'ownerId', as: 'owner' });
+User.hasMany(Gym, { foreignKey: 'ownerId', as: 'ownedGyms' });
+
+Gym.hasMany(GymMembership, { foreignKey: 'gymId', as: 'memberships' });
+GymMembership.belongsTo(Gym, { foreignKey: 'gymId', as: 'gym' });
+GymMembership.belongsTo(User, { foreignKey: 'userId', as: 'member' });
+User.hasMany(GymMembership, { foreignKey: 'userId', as: 'gymMemberships' });
+
+Gym.hasMany(GymProgram, { foreignKey: 'gymId', as: 'gymPrograms' });
+GymProgram.belongsTo(Gym, { foreignKey: 'gymId', as: 'gym' });
+GymProgram.belongsTo(User, { foreignKey: 'coachId', as: 'coach' });
+User.hasMany(GymProgram, { foreignKey: 'coachId', as: 'createdGymPrograms' });
+
+// Follow associations
+Follow.belongsTo(User, { foreignKey: 'followerId', as: 'follower' });
+Follow.belongsTo(User, { foreignKey: 'followingId', as: 'following' });
+User.hasMany(Follow, { foreignKey: 'followerId', as: 'following' });
+User.hasMany(Follow, { foreignKey: 'followingId', as: 'followers' });
+
 module.exports = {
   sequelize,
   User,
@@ -99,4 +127,9 @@ module.exports = {
   CheckIn,
   Appointment,
   ProgressPhoto,
+  Gym,
+  GymMembership,
+  GymProgram,
+  Follow,
+  MembershipPackage,
 };

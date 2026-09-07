@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { User } = require('../models');
+const { User, Gym, GymMembership } = require('../models');
 const email = require('../services/emailService');
 const { generateFitnessPlan } = require('../services/fitnessEngine');
 
@@ -34,6 +34,16 @@ exports.register = async (req, res) => {
 
     email.sendVerificationCode({ firstName, email: email_, code });
     email.sendNewClientAlert({ clientFirstName: firstName, clientLastName: lastName, clientEmail: email_ });
+
+    // Auto-create pending gym membership for the default gym
+    const newUser = await User.findOne({ where: { email: email_ } });
+    const defaultGym = await Gym.findOne({ where: { isDefault: true } });
+    if (newUser && defaultGym) {
+      await GymMembership.findOrCreate({
+        where: { gymId: defaultGym.id, userId: newUser.id },
+        defaults: { status: 'pending' },
+      });
+    }
   } catch (err) {
     res.status(500).json({ message: 'Erreur serveur', error: err.message });
   }
@@ -157,9 +167,17 @@ exports.me = async (req, res) => {
   try {
     const user = await User.findByPk(req.user.id, {
       attributes: { exclude: ['passwordHash', 'emailVerificationCode', 'emailVerificationExpiry', 'passwordResetCode', 'passwordResetExpiry'] },
-      include: [{ association: 'subscriptions', where: { status: 'actif' }, required: false }],
+      include: [
+        { association: 'subscriptions', where: { status: 'actif' }, required: false },
+        { association: 'gymMemberships', required: false },
+      ],
     });
-    res.json(user);
+    // Flatten gymMembership status for frontend convenience
+    const userData = user.toJSON();
+    const membership = (userData.gymMemberships || [])[0] || null;
+    userData.gymMembership = membership ? { status: membership.status, gymId: membership.gymId, id: membership.id } : null;
+    delete userData.gymMemberships;
+    res.json(userData);
   } catch (err) {
     res.status(500).json({ message: 'Erreur serveur', error: err.message });
   }

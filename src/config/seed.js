@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const {
   sequelize, User, Subscription, Post, PostComment, PostLike,
   WorkoutProgram, WorkoutSession, Exercise, Measurement, FollowUp, Message, Notification,
+  Gym, GymMembership, MembershipPackage, GymProgram, Follow,
 } = require('../models');
 
 async function seed() {
@@ -216,6 +217,80 @@ async function seed() {
   await Notification.create({
     userId: client2.id, type: 'follow_up', title: 'Suivi planifié',
     body: 'Votre coach a planifié un suivi pour le 08/09', isRead: false,
+  });
+
+  // ── Default Gym ───────────────────────────────────────────────────────────────
+  const gym = await Gym.create({
+    name: 'Yunfit Dakar',
+    description: 'Votre salle de sport moderne au cœur de Dakar. Équipements haut de gamme, coachs certifiés.',
+    location: 'Dakar, Sénégal',
+    phone: '+221 33 XXX XX XX',
+    email: 'contact@yunfit.fr',
+    ownerId: admin.id,
+    isDefault: true,
+  });
+
+  // ── Membership packages ───────────────────────────────────────────────────────
+  await MembershipPackage.create({
+    gymId: gym.id, name: 'Journée', description: 'Accès 1 journée complète',
+    price: 7000, durationDays: 1, sortOrder: 0,
+    features: ['Accès à toutes les machines', 'Vestiaires & douches'],
+  });
+  await MembershipPackage.create({
+    gymId: gym.id, name: 'Mensuel', description: 'Abonnement 1 mois',
+    price: 30000, durationDays: 30, sortOrder: 1,
+    features: ['Accès illimité', 'Vestiaires & douches', 'Cours collectifs'],
+  });
+  await MembershipPackage.create({
+    gymId: gym.id, name: 'Trimestriel', description: 'Abonnement 3 mois',
+    price: 75000, durationDays: 90, sortOrder: 2,
+    features: ['Accès illimité', 'Vestiaires & douches', 'Cours collectifs', '1 bilan coach offert'],
+  });
+  await MembershipPackage.create({
+    gymId: gym.id, name: 'Annuel', description: 'Abonnement 1 an — Meilleur prix',
+    price: 240000, durationDays: 365, sortOrder: 3,
+    features: ['Accès illimité', 'Vestiaires & douches', 'Cours collectifs', 'Bilans coach mensuels', 'Programme personnalisé offert'],
+  });
+
+  // ── Auto-approve all existing users ──────────────────────────────────────────
+  for (const user of [admin, coach, client1, client2]) {
+    await GymMembership.create({ gymId: gym.id, userId: user.id, status: 'approved', approvedAt: new Date(), approvedBy: admin.id });
+  }
+
+  // ── Follow relationships ──────────────────────────────────────────────────────
+  await Follow.create({ followerId: client1.id, followingId: coach.id });
+  await Follow.create({ followerId: client2.id, followingId: coach.id });
+  await Follow.create({ followerId: client1.id, followingId: client2.id });
+  await Follow.create({ followerId: coach.id, followingId: client1.id });
+  await Follow.create({ followerId: coach.id, followingId: client2.id });
+
+  // ── Gym program catalog ───────────────────────────────────────────────────────
+  await GymProgram.create({
+    gymId: gym.id, coachId: coach.id,
+    title: 'Perte de poids — 8 semaines', category: 'cardio', difficulty: 'debutant',
+    durationWeeks: 8, frequencyPerWeek: 4, isPublished: true, enrollCount: 12,
+    description: 'Programme complet alliant cardio et renforcement musculaire pour brûler les graisses efficacement.',
+    sessions: [
+      { name: 'Cardio HIIT', dayOfWeek: 'lundi', exercises: [{ name: 'Burpees', sets: 4, reps: 10 }, { name: 'Mountain climbers', sets: 4, reps: 20 }] },
+      { name: 'Renfo bas du corps', dayOfWeek: 'mercredi', exercises: [{ name: 'Squats', sets: 3, reps: 15 }, { name: 'Fentes', sets: 3, reps: 12 }] },
+    ],
+  });
+  await GymProgram.create({
+    gymId: gym.id, coachId: coach.id,
+    title: 'Prise de masse — 12 semaines', category: 'muscu', difficulty: 'intermediaire',
+    durationWeeks: 12, frequencyPerWeek: 4, isPublished: true, enrollCount: 8,
+    description: 'Programme hypertrophie structuré pour gagner en masse musculaire de façon optimale.',
+    sessions: [
+      { name: 'Push (Poitrine/Épaules/Triceps)', dayOfWeek: 'lundi', exercises: [{ name: 'Développé couché', sets: 4, reps: 8 }] },
+      { name: 'Pull (Dos/Biceps)', dayOfWeek: 'mardi', exercises: [{ name: 'Tractions', sets: 4, reps: 8 }] },
+    ],
+  });
+  await GymProgram.create({
+    gymId: gym.id, coachId: coach.id,
+    title: 'Yoga & Souplesse', category: 'yoga', difficulty: 'debutant',
+    durationWeeks: 6, frequencyPerWeek: 3, isPublished: true, enrollCount: 5,
+    description: 'Programme de yoga et étirements pour améliorer la souplesse et la récupération.',
+    sessions: [],
   });
 
   console.log('\n✅ Données de test créées avec succès\n');
