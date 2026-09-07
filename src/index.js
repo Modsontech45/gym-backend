@@ -36,6 +36,10 @@ app.use('/api/messages', require('./routes/messages'));
 app.use('/api/followups', require('./routes/followups'));
 app.use('/api/measurements', require('./routes/measurements'));
 app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/coach-notes', require('./routes/coachNotes'));
+app.use('/api/check-ins', require('./routes/checkIns'));
+app.use('/api/appointments', require('./routes/appointments'));
+app.use('/api/progress-photos', require('./routes/progressPhotos'));
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));
 

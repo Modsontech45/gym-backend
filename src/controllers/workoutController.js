@@ -73,12 +73,92 @@ exports.logSession = async (req, res) => {
   }
 };
 
+exports.deleteProgram = async (req, res) => {
+  try {
+    const program = await WorkoutProgram.findByPk(req.params.id);
+    if (!program) return res.status(404).json({ message: 'Programme introuvable' });
+    await program.destroy();
+    res.json({ message: 'Programme supprimé' });
+  } catch (err) {
+    res.status(500).json({ message: 'Erreur serveur', error: err.message });
+  }
+};
+
+exports.getProgramDetail = async (req, res) => {
+  try {
+    const program = await WorkoutProgram.findByPk(req.params.id, {
+      include: [
+        { association: 'sessions', include: [{ association: 'exercises', order: [['orderIndex', 'ASC']] }], order: [['orderIndex', 'ASC']] },
+        { association: 'coach', attributes: ['id', 'firstName', 'lastName', 'avatar'] },
+        { association: 'client', attributes: ['id', 'firstName', 'lastName', 'avatar'] },
+      ],
+    });
+    if (!program) return res.status(404).json({ message: 'Programme introuvable' });
+    res.json(program);
+  } catch (err) {
+    res.status(500).json({ message: 'Erreur serveur', error: err.message });
+  }
+};
+
+exports.updateSession = async (req, res) => {
+  try {
+    const session = await WorkoutSession.findByPk(req.params.id);
+    if (!session) return res.status(404).json({ message: 'Séance introuvable' });
+    await session.update(req.body);
+    res.json(session);
+  } catch (err) {
+    res.status(500).json({ message: 'Erreur serveur', error: err.message });
+  }
+};
+
+exports.deleteSession = async (req, res) => {
+  try {
+    const session = await WorkoutSession.findByPk(req.params.id);
+    if (!session) return res.status(404).json({ message: 'Séance introuvable' });
+    await session.destroy();
+    res.json({ message: 'Séance supprimée' });
+  } catch (err) {
+    res.status(500).json({ message: 'Erreur serveur', error: err.message });
+  }
+};
+
+exports.updateExercise = async (req, res) => {
+  try {
+    const exercise = await Exercise.findByPk(req.params.id);
+    if (!exercise) return res.status(404).json({ message: 'Exercice introuvable' });
+    await exercise.update(req.body);
+    res.json(exercise);
+  } catch (err) {
+    res.status(500).json({ message: 'Erreur serveur', error: err.message });
+  }
+};
+
+exports.deleteExercise = async (req, res) => {
+  try {
+    const exercise = await Exercise.findByPk(req.params.id);
+    if (!exercise) return res.status(404).json({ message: 'Exercice introuvable' });
+    await exercise.destroy();
+    res.json({ message: 'Exercice supprimé' });
+  } catch (err) {
+    res.status(500).json({ message: 'Erreur serveur', error: err.message });
+  }
+};
+
 exports.getSessionLogs = async (req, res) => {
   try {
     const userId = req.params.userId || req.user.id;
     const logs = await SessionLog.findAll({
       where: { userId },
-      include: [{ association: 'WorkoutSession', include: ['WorkoutProgram'] }],
+      include: [{
+        model: WorkoutSession,
+        as: 'session',
+        attributes: ['id', 'name', 'durationMinutes', 'muscleGroups'],
+        include: [{
+          model: WorkoutProgram,
+          as: 'program',
+          attributes: ['id', 'name'],
+        }],
+      }],
       order: [['completedAt', 'DESC']],
       limit: 50,
     });

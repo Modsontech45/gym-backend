@@ -14,6 +14,10 @@ const Message = require('./Message');
 const FollowUp = require('./FollowUp');
 const Notification = require('./Notification');
 const Measurement = require('./Measurement');
+const CoachNote = require('./CoachNote');
+const CheckIn = require('./CheckIn');
+const Appointment = require('./Appointment');
+const ProgressPhoto = require('./ProgressPhoto');
 
 // User associations
 User.hasMany(Subscription, { foreignKey: 'userId', as: 'subscriptions' });
@@ -38,14 +42,15 @@ WorkoutProgram.belongsTo(User, { foreignKey: 'clientId', as: 'client' });
 WorkoutProgram.belongsTo(User, { foreignKey: 'coachId', as: 'coach' });
 
 WorkoutProgram.hasMany(WorkoutSession, { foreignKey: 'programId', as: 'sessions' });
-WorkoutSession.belongsTo(WorkoutProgram, { foreignKey: 'programId' });
+WorkoutSession.belongsTo(WorkoutProgram, { foreignKey: 'programId', as: 'program' });
 
 WorkoutSession.hasMany(Exercise, { foreignKey: 'sessionId', as: 'exercises' });
 Exercise.belongsTo(WorkoutSession, { foreignKey: 'sessionId' });
 
 User.hasMany(SessionLog, { foreignKey: 'userId', as: 'sessionLogs' });
 SessionLog.belongsTo(User, { foreignKey: 'userId' });
-SessionLog.belongsTo(WorkoutSession, { foreignKey: 'sessionId' });
+SessionLog.belongsTo(WorkoutSession, { foreignKey: 'sessionId', as: 'session' });
+WorkoutSession.hasMany(SessionLog, { foreignKey: 'sessionId', as: 'logs' });
 
 Message.belongsTo(User, { foreignKey: 'senderId', as: 'sender' });
 Message.belongsTo(User, { foreignKey: 'receiverId', as: 'receiver' });
@@ -57,6 +62,21 @@ Notification.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
 Measurement.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 User.hasMany(Measurement, { foreignKey: 'userId', as: 'measurements' });
+
+CoachNote.belongsTo(User, { foreignKey: 'coachId', as: 'coach' });
+CoachNote.belongsTo(User, { foreignKey: 'clientId', as: 'client' });
+User.hasMany(CoachNote, { foreignKey: 'clientId', as: 'coachNotes' });
+
+CheckIn.belongsTo(User, { foreignKey: 'clientId', as: 'client' });
+User.hasMany(CheckIn, { foreignKey: 'clientId', as: 'checkIns' });
+
+Appointment.belongsTo(User, { foreignKey: 'coachId', as: 'coach' });
+Appointment.belongsTo(User, { foreignKey: 'clientId', as: 'client' });
+User.hasMany(Appointment, { foreignKey: 'coachId', as: 'coachAppointments' });
+User.hasMany(Appointment, { foreignKey: 'clientId', as: 'clientAppointments' });
+
+ProgressPhoto.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+User.hasMany(ProgressPhoto, { foreignKey: 'userId', as: 'progressPhotos' });
 
 module.exports = {
   sequelize,
@@ -75,4 +95,8 @@ module.exports = {
   FollowUp,
   Notification,
   Measurement,
+  CoachNote,
+  CheckIn,
+  Appointment,
+  ProgressPhoto,
 };
