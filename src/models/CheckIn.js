@@ -18,6 +18,8 @@ const CheckIn = sequelize.define('CheckIn', {
   wins: { type: DataTypes.TEXT },        // what went well
   struggles: { type: DataTypes.TEXT },   // challenges
   notes: { type: DataTypes.TEXT },       // open field
+  coachFeedback: { type: DataTypes.TEXT }, // coach writes response after reviewing
+  coachFeedbackAt: { type: DataTypes.DATE },
 }, {
   tableName: 'check_ins',
   timestamps: true,

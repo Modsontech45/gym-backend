@@ -16,6 +16,7 @@ router.put('/exercises/:id', authenticate, requireRole('admin', 'coach'), c.upda
 router.delete('/exercises/:id', authenticate, requireRole('admin', 'coach'), c.deleteExercise);
 router.post('/log', authenticate, c.logSession);
 router.get('/logs', authenticate, c.getSessionLogs);
+router.get('/stats', authenticate, c.getWorkoutStats);
 router.get('/logs/:userId', authenticate, requireRole('admin', 'coach'), c.getSessionLogs);
 
 module.exports = router;

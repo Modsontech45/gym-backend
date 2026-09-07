@@ -1,4 +1,4 @@
-const { CheckIn, User } = require('../models');
+const { CheckIn, User, Notification } = require('../models');
 const { Op } = require('sequelize');
 
 // Get check-ins for a client (coach/admin view)
@@ -41,6 +41,30 @@ exports.getMyCheckIns = async (req, res) => {
       limit: 12,
     });
     res.json(checkIns);
+  } catch (err) {
+    res.status(500).json({ message: 'Erreur serveur', error: err.message });
+  }
+};
+
+// Coach adds feedback to a check-in
+exports.addCoachFeedback = async (req, res) => {
+  try {
+    const checkIn = await CheckIn.findByPk(req.params.id, {
+      include: [{ model: User, as: 'client', attributes: ['id', 'firstName', 'email'] }],
+    });
+    if (!checkIn) return res.status(404).json({ message: 'Check-in introuvable' });
+
+    await checkIn.update({ coachFeedback: req.body.feedback, coachFeedbackAt: new Date() });
+
+    // Notify the client
+    await Notification.create({
+      userId: checkIn.clientId,
+      type: 'coach_feedback',
+      title: 'Feedback de votre coach',
+      body: `Votre coach a répondu à votre check-in : "${req.body.feedback?.slice(0, 60)}…"`,
+    }).catch(() => {}); // non-blocking
+
+    res.json(checkIn);
   } catch (err) {
     res.status(500).json({ message: 'Erreur serveur', error: err.message });
   }

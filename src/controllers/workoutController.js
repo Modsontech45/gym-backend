@@ -1,4 +1,5 @@
 const { WorkoutProgram, WorkoutSession, Exercise, SessionLog, User } = require('../models');
+const { Op } = require('sequelize');
 
 exports.getClientPrograms = async (req, res) => {
   try {
@@ -141,6 +142,53 @@ exports.deleteExercise = async (req, res) => {
     res.json({ message: 'Exercice supprimé' });
   } catch (err) {
     res.status(500).json({ message: 'Erreur serveur', error: err.message });
+  }
+};
+
+exports.getWorkoutStats = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const now = new Date();
+
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1));
+    weekStart.setHours(0, 0, 0, 0);
+
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const [weekLogs, monthLogs, allTimeLogs] = await Promise.all([
+      SessionLog.count({ where: { userId, completedAt: { [Op.gte]: weekStart } } }),
+      SessionLog.count({ where: { userId, completedAt: { [Op.gte]: monthStart } } }),
+      SessionLog.findAll({
+        where: { userId },
+        attributes: ['completedAt', 'durationMinutes', 'rating'],
+        order: [['completedAt', 'DESC']],
+        limit: 90,
+      }),
+    ]);
+
+    // Build last-30-days daily count for heatmap
+    const dayCounts = {};
+    for (const log of allTimeLogs) {
+      const d = new Date(log.completedAt).toISOString().split('T')[0];
+      dayCounts[d] = (dayCounts[d] || 0) + 1;
+    }
+
+    const totalDuration = allTimeLogs.reduce((s, l) => s + (l.durationMinutes || 0), 0);
+    const avgDuration = allTimeLogs.length ? Math.round(totalDuration / allTimeLogs.length) : 0;
+    const ratings = allTimeLogs.map(l => l.rating).filter(Boolean);
+    const avgRating = ratings.length ? Math.round(ratings.reduce((a, b) => a + b, 0) / ratings.length * 10) / 10 : null;
+
+    res.json({
+      thisWeek: weekLogs,
+      thisMonth: monthLogs,
+      allTime: allTimeLogs.length,
+      avgDurationMinutes: avgDuration,
+      avgRating,
+      dayCounts,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
