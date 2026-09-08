@@ -15,6 +15,10 @@ router.post('/exercises', authenticate, requireRole('admin', 'coach'), c.addExer
 router.put('/exercises/:id', authenticate, requireRole('admin', 'coach'), c.updateExercise);
 router.delete('/exercises/:id', authenticate, requireRole('admin', 'coach'), c.deleteExercise);
 router.post('/log', authenticate, c.logSession);
+router.post('/log/start', authenticate, c.startSession);
+router.get('/log/active', authenticate, c.getActiveSession);
+router.put('/log/:id/complete', authenticate, c.completeSession);
+router.delete('/log/:id', authenticate, c.cancelSession);
 router.get('/logs', authenticate, c.getSessionLogs);
 router.get('/stats', authenticate, c.getWorkoutStats);
 router.get('/logs/:userId', authenticate, requireRole('admin', 'coach'), c.getSessionLogs);

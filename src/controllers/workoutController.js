@@ -66,9 +66,75 @@ exports.logSession = async (req, res) => {
   try {
     const { sessionId, durationMinutes, notes, rating } = req.body;
     const log = await SessionLog.create({
-      userId: req.user.id, sessionId, durationMinutes, notes, rating, completedAt: new Date(),
+      userId: req.user.id, sessionId, durationMinutes, notes, rating,
+      startedAt: new Date(), completedAt: new Date(),
     });
     res.status(201).json(log);
+  } catch (err) {
+    res.status(500).json({ message: 'Erreur serveur', error: err.message });
+  }
+};
+
+exports.startSession = async (req, res) => {
+  try {
+    const { sessionId } = req.body;
+    if (!sessionId) return res.status(400).json({ message: 'sessionId requis' });
+
+    // Cancel any previous unfinished session for this user
+    await SessionLog.destroy({ where: { userId: req.user.id, completedAt: null } });
+
+    const log = await SessionLog.create({
+      userId: req.user.id,
+      sessionId,
+      startedAt: new Date(),
+      completedAt: null,
+    });
+    res.status(201).json(log);
+  } catch (err) {
+    res.status(500).json({ message: 'Erreur serveur', error: err.message });
+  }
+};
+
+exports.getActiveSession = async (req, res) => {
+  try {
+    const log = await SessionLog.findOne({
+      where: { userId: req.user.id, completedAt: null },
+      include: [{
+        model: WorkoutSession,
+        as: 'session',
+        attributes: ['id', 'name', 'durationMinutes', 'muscleGroups'],
+        include: [{ model: WorkoutProgram, as: 'program', attributes: ['id', 'name'] }],
+      }],
+    });
+    res.json(log || null);
+  } catch (err) {
+    res.status(500).json({ message: 'Erreur serveur', error: err.message });
+  }
+};
+
+exports.completeSession = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { notes, rating } = req.body;
+
+    const log = await SessionLog.findOne({ where: { id, userId: req.user.id, completedAt: null } });
+    if (!log) return res.status(404).json({ message: 'Séance active introuvable' });
+
+    const completedAt = new Date();
+    const durationMinutes = Math.round((completedAt - new Date(log.startedAt)) / 60000);
+
+    await log.update({ completedAt, durationMinutes, notes: notes || null, rating: rating || null });
+    res.json(log);
+  } catch (err) {
+    res.status(500).json({ message: 'Erreur serveur', error: err.message });
+  }
+};
+
+exports.cancelSession = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await SessionLog.destroy({ where: { id, userId: req.user.id, completedAt: null } });
+    res.json({ cancelled: true });
   } catch (err) {
     res.status(500).json({ message: 'Erreur serveur', error: err.message });
   }
