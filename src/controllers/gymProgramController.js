@@ -22,7 +22,7 @@ exports.listPublished = async (req, res) => {
 exports.listAll = async (req, res) => {
   try {
     const gym = await Gym.findOne({ where: { isDefault: true } });
-    if (!gym) return res.json([]);
+    if (!gym) return res.status(404).json({ message: 'No default gym configured' });
     const programs = await GymProgram.findAll({
       where: { gymId: gym.id },
       include: [{ model: User, as: 'coach', attributes: ['id', 'firstName', 'lastName', 'avatar'] }],

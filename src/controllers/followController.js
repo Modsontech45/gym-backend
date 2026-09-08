@@ -55,13 +55,15 @@ exports.getFollowing = async (req, res) => {
 exports.getSuggestions = async (req, res) => {
   try {
     const gym = await Gym.findOne({ where: { isDefault: true } });
-    if (!gym) return res.json([]);
 
-    const memberships = await GymMembership.findAll({
-      where: { gymId: gym.id },
-      attributes: ['userId'],
-    });
-    const memberIds = memberships.map(m => m.userId).filter(id => id !== req.user.id);
+    let memberIds = [];
+    if (gym) {
+      const memberships = await GymMembership.findAll({
+        where: { gymId: gym.id },
+        attributes: ['userId'],
+      });
+      memberIds = memberships.map(m => m.userId).filter(id => id !== req.user.id);
+    }
 
     // Get who I'm already following
     const myFollows = await Follow.findAll({
