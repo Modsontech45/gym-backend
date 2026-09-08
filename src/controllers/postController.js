@@ -1,4 +1,4 @@
-const { Post, PostLike, PostComment, User, Notification } = require('../models');
+const { Post, PostLike, PostComment, User, Notification, Follow } = require('../models');
 const { Op } = require('sequelize');
 const { cloudinary } = require('../middleware/upload');
 
@@ -20,10 +20,21 @@ exports.getFeed = async (req, res) => {
       offset: parseInt(offset),
     });
 
-    const posts = rows.map((post) => ({
-      ...post.toJSON(),
-      isLiked: post.likes.some((l) => l.userId === req.user.id),
-    }));
+    // Which authors does the current user follow?
+    const myFollows = await Follow.findAll({
+      where: { followerId: req.user.id },
+      attributes: ['followingId'],
+    });
+    const followingSet = new Set(myFollows.map(f => f.followingId));
+
+    const posts = rows.map((post) => {
+      const json = post.toJSON();
+      return {
+        ...json,
+        isLiked: post.likes.some((l) => l.userId === req.user.id),
+        author: json.author ? { ...json.author, isFollowing: followingSet.has(json.author.id) } : null,
+      };
+    });
 
     res.json({ posts, total: count, page: parseInt(page), totalPages: Math.ceil(count / limit) });
   } catch (err) {
@@ -145,6 +156,24 @@ exports.addComment = async (req, res) => {
     res.status(201).json(fullComment);
   } catch (err) {
     res.status(500).json({ message: 'Erreur serveur', error: err.message });
+  }
+};
+
+exports.viewPost = async (req, res) => {
+  try {
+    await Post.increment('viewCount', { where: { id: req.params.id } });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.playPost = async (req, res) => {
+  try {
+    await Post.increment('playCount', { where: { id: req.params.id } });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 

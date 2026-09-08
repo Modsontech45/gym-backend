@@ -10,5 +10,7 @@ router.post('/:id/like', authenticate, c.likePost);
 router.get('/:id/comments', authenticate, c.getComments);
 router.post('/:id/comments', authenticate, c.addComment);
 router.delete('/:id/comments/:commentId', authenticate, c.deleteComment);
+router.post('/:id/view', authenticate, c.viewPost);
+router.post('/:id/play', authenticate, c.playPost);
 
 module.exports = router;

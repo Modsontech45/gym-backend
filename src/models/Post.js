@@ -10,6 +10,8 @@ const Post = sequelize.define('Post', {
   postType: { type: DataTypes.ENUM('progress', 'workout', 'motivation', 'achievement', 'general'), defaultValue: 'general' },
   likesCount: { type: DataTypes.INTEGER, defaultValue: 0 },
   commentsCount: { type: DataTypes.INTEGER, defaultValue: 0 },
+  viewCount: { type: DataTypes.INTEGER, defaultValue: 0 },
+  playCount: { type: DataTypes.INTEGER, defaultValue: 0 },
   isPublic: { type: DataTypes.BOOLEAN, defaultValue: true },
 }, {
   tableName: 'posts',

@@ -59,4 +59,22 @@ const uploadPost = multer({
   limits: { fileSize: 50 * 1024 * 1024 },  // 50 MB — videos max 30s stay well under
 });
 
-module.exports = { uploadAvatar, uploadPost, cloudinary };
+const productStorage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'yunfit/products',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+    transformation: [{ width: 800, height: 800, crop: 'limit', quality: 'auto', fetch_format: 'auto' }],
+  },
+});
+
+const uploadProduct = multer({
+  storage: productStorage,
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) cb(null, true);
+    else cb(new Error('Image uniquement'), false);
+  },
+  limits: { fileSize: 10 * 1024 * 1024 },
+});
+
+module.exports = { uploadAvatar, uploadPost, uploadProduct, cloudinary };
