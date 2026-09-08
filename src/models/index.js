@@ -23,6 +23,7 @@ const GymMembership = require('./GymMembership');
 const GymProgram = require('./GymProgram');
 const Follow = require('./Follow');
 const MembershipPackage = require('./MembershipPackage');
+const Product = require('./Product');
 
 // User associations
 User.hasMany(Subscription, { foreignKey: 'userId', as: 'subscriptions' });
@@ -100,6 +101,12 @@ GymProgram.belongsTo(Gym, { foreignKey: 'gymId', as: 'gym' });
 GymProgram.belongsTo(User, { foreignKey: 'coachId', as: 'coach' });
 User.hasMany(GymProgram, { foreignKey: 'coachId', as: 'createdGymPrograms' });
 
+// Product associations
+Product.belongsTo(Gym, { foreignKey: 'gymId', as: 'gym' });
+Gym.hasMany(Product, { foreignKey: 'gymId', as: 'products' });
+Product.belongsTo(User, { foreignKey: 'coachId', as: 'seller' });
+User.hasMany(Product, { foreignKey: 'coachId', as: 'products' });
+
 // Follow associations
 Follow.belongsTo(User, { foreignKey: 'followerId', as: 'follower' });
 Follow.belongsTo(User, { foreignKey: 'followingId', as: 'following' });
@@ -132,4 +139,5 @@ module.exports = {
   GymProgram,
   Follow,
   MembershipPackage,
+  Product,
 };

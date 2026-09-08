@@ -43,6 +43,7 @@ app.use('/api/progress-photos', require('./routes/progressPhotos'));
 app.use('/api/gym', require('./routes/gym'));
 app.use('/api/gym-programs', require('./routes/gymPrograms'));
 app.use('/api/follow', require('./routes/follow'));
+app.use('/api/products', require('./routes/products'));
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));
 
