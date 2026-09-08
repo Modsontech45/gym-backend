@@ -70,8 +70,12 @@ exports.getSuggestions = async (req, res) => {
     });
     const followingIds = new Set(myFollows.map(f => f.followingId));
 
+    const whereClause = memberIds.length > 0
+      ? { id: { [Op.in]: memberIds } }
+      : { id: { [Op.ne]: req.user.id } };
+
     const users = await User.findAll({
-      where: { id: { [Op.in]: memberIds } },
+      where: whereClause,
       attributes: ['id', 'firstName', 'lastName', 'avatar', 'role', 'bio', 'location', 'fitnessGoal'],
       order: [
         // coaches/admins first, then alphabetical
@@ -98,20 +102,9 @@ exports.searchMembers = async (req, res) => {
     const { q } = req.query;
     if (!q || q.trim().length < 2) return res.json([]);
 
-    // Get the user's gym
-    const gym = await Gym.findOne({ where: { isDefault: true } });
-    if (!gym) return res.json([]);
-
-    // Find all gym members
-    const memberships = await GymMembership.findAll({
-      where: { gymId: gym.id },
-      attributes: ['userId'],
-    });
-    const memberIds = memberships.map(m => m.userId);
-
     const users = await User.findAll({
       where: {
-        id: { [Op.in]: memberIds, [Op.ne]: req.user.id },
+        id: { [Op.ne]: req.user.id },
         [Op.or]: [
           { firstName: { [Op.iLike]: `%${q}%` } },
           { lastName: { [Op.iLike]: `%${q}%` } },
@@ -126,7 +119,6 @@ exports.searchMembers = async (req, res) => {
       limit: 20,
     });
 
-    // Annotate with isFollowing
     const myFollows = await Follow.findAll({
       where: { followerId: req.user.id, followingId: { [Op.in]: users.map(u => u.id) } },
       attributes: ['followingId'],
