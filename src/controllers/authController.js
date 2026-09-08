@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { User, Gym, GymMembership } = require('../models');
+const { User, Gym, GymMembership, Follow } = require('../models');
 const email = require('../services/emailService');
 const { generateFitnessPlan } = require('../services/fitnessEngine');
 
@@ -8,6 +8,21 @@ const generateToken = (user) =>
   jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
 
 const randomCode = () => String(Math.floor(100000 + Math.random() * 900000));
+
+// Auto-follow gym owner + all coaches for a given userId (fire-and-forget)
+async function autoFollowGymStaff(userId) {
+  try {
+    const gym = await Gym.findOne({ where: { isDefault: true }, include: [{ association: 'owner' }] });
+    if (!gym) return;
+    // Collect staff: gym owner + all coaches/admins
+    const staff = await User.findAll({ where: { role: ['admin', 'coach'] }, attributes: ['id'] });
+    const targets = new Set([gym.ownerId, ...staff.map(u => u.id)]);
+    targets.delete(userId); // don't self-follow
+    for (const targetId of targets) {
+      await Follow.findOrCreate({ where: { followerId: userId, followingId: targetId } });
+    }
+  } catch (_) {}
+}
 
 
 exports.register = async (req, res) => {
@@ -43,6 +58,7 @@ exports.register = async (req, res) => {
         where: { gymId: defaultGym.id, userId: newUser.id },
         defaults: { status: 'pending' },
       });
+      autoFollowGymStaff(newUser.id); // non-blocking
     }
   } catch (err) {
     res.status(500).json({ message: 'Erreur serveur', error: err.message });
@@ -185,7 +201,11 @@ exports.me = async (req, res) => {
           defaults: { status: user.role === 'admin' || user.role === 'coach' ? 'approved' : 'pending' },
         });
         membership = mem.toJSON();
+        autoFollowGymStaff(user.id); // non-blocking
       }
+    } else {
+      // Ensure existing members still follow gym staff (idempotent)
+      autoFollowGymStaff(user.id);
     }
 
     userData.gymMembership = membership ? { status: membership.status, gymId: membership.gymId, id: membership.id } : null;

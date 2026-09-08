@@ -58,7 +58,7 @@ exports.getSuggestions = async (req, res) => {
     if (!gym) return res.json([]);
 
     const memberships = await GymMembership.findAll({
-      where: { gymId: gym.id, status: 'approved' },
+      where: { gymId: gym.id },
       attributes: ['userId'],
     });
     const memberIds = memberships.map(m => m.userId).filter(id => id !== req.user.id);
@@ -70,15 +70,24 @@ exports.getSuggestions = async (req, res) => {
     });
     const followingIds = new Set(myFollows.map(f => f.followingId));
 
-    // Return members not yet followed, prioritise coaches first
     const users = await User.findAll({
       where: { id: { [Op.in]: memberIds } },
-      attributes: ['id', 'firstName', 'lastName', 'avatar', 'role', 'bio'],
-      order: [['role', 'ASC']], // coach < client alphabetically, good enough
-      limit: 20,
+      attributes: ['id', 'firstName', 'lastName', 'avatar', 'role', 'bio', 'location', 'fitnessGoal'],
+      order: [
+        // coaches/admins first, then alphabetical
+        sequelize.literal(`CASE WHEN role = 'admin' THEN 0 WHEN role = 'coach' THEN 1 ELSE 2 END`),
+        ['firstName', 'ASC'],
+      ],
+      limit: 50,
     });
 
-    res.json(users.map(u => ({ ...u.toJSON(), isFollowing: followingIds.has(u.id) })));
+    // Put not-yet-followed first
+    const sorted = [
+      ...users.filter(u => !followingIds.has(u.id)),
+      ...users.filter(u => followingIds.has(u.id)),
+    ];
+
+    res.json(sorted.map(u => ({ ...u.toJSON(), isFollowing: followingIds.has(u.id) })));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -93,9 +102,9 @@ exports.searchMembers = async (req, res) => {
     const gym = await Gym.findOne({ where: { isDefault: true } });
     if (!gym) return res.json([]);
 
-    // Find approved gym members
+    // Find all gym members
     const memberships = await GymMembership.findAll({
-      where: { gymId: gym.id, status: 'approved' },
+      where: { gymId: gym.id },
       attributes: ['userId'],
     });
     const memberIds = memberships.map(m => m.userId);
@@ -107,9 +116,13 @@ exports.searchMembers = async (req, res) => {
           { firstName: { [Op.iLike]: `%${q}%` } },
           { lastName: { [Op.iLike]: `%${q}%` } },
           { email: { [Op.iLike]: `%${q}%` } },
+          { phone: { [Op.iLike]: `%${q}%` } },
+          { location: { [Op.iLike]: `%${q}%` } },
+          { bio: { [Op.iLike]: `%${q}%` } },
+          { fitnessGoal: { [Op.iLike]: `%${q}%` } },
         ],
       },
-      attributes: ['id', 'firstName', 'lastName', 'avatar', 'role'],
+      attributes: ['id', 'firstName', 'lastName', 'avatar', 'role', 'bio', 'location'],
       limit: 20,
     });
 
