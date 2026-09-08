@@ -2,6 +2,7 @@ const router = require('express').Router();
 const c = require('../controllers/followController');
 const { authenticate } = require('../middleware/auth');
 
+router.get('/suggestions', authenticate, c.getSuggestions);
 router.get('/search', authenticate, c.searchMembers);
 router.post('/:targetId', authenticate, c.follow);
 router.delete('/:targetId', authenticate, c.unfollow);

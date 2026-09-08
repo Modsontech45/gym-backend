@@ -52,6 +52,38 @@ exports.getFollowing = async (req, res) => {
   }
 };
 
+exports.getSuggestions = async (req, res) => {
+  try {
+    const gym = await Gym.findOne({ where: { isDefault: true } });
+    if (!gym) return res.json([]);
+
+    const memberships = await GymMembership.findAll({
+      where: { gymId: gym.id, status: 'approved' },
+      attributes: ['userId'],
+    });
+    const memberIds = memberships.map(m => m.userId).filter(id => id !== req.user.id);
+
+    // Get who I'm already following
+    const myFollows = await Follow.findAll({
+      where: { followerId: req.user.id },
+      attributes: ['followingId'],
+    });
+    const followingIds = new Set(myFollows.map(f => f.followingId));
+
+    // Return members not yet followed, prioritise coaches first
+    const users = await User.findAll({
+      where: { id: { [Op.in]: memberIds } },
+      attributes: ['id', 'firstName', 'lastName', 'avatar', 'role', 'bio'],
+      order: [['role', 'ASC']], // coach < client alphabetically, good enough
+      limit: 20,
+    });
+
+    res.json(users.map(u => ({ ...u.toJSON(), isFollowing: followingIds.has(u.id) })));
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 exports.searchMembers = async (req, res) => {
   try {
     const { q } = req.query;

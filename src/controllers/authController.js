@@ -172,9 +172,22 @@ exports.me = async (req, res) => {
         { association: 'gymMemberships', required: false },
       ],
     });
-    // Flatten gymMembership status for frontend convenience
+
     const userData = user.toJSON();
-    const membership = (userData.gymMemberships || [])[0] || null;
+    let membership = (userData.gymMemberships || [])[0] || null;
+
+    // Auto-enroll existing users who have no membership yet
+    if (!membership) {
+      const defaultGym = await Gym.findOne({ where: { isDefault: true } });
+      if (defaultGym) {
+        const [mem] = await GymMembership.findOrCreate({
+          where: { gymId: defaultGym.id, userId: user.id },
+          defaults: { status: user.role === 'admin' || user.role === 'coach' ? 'approved' : 'pending' },
+        });
+        membership = mem.toJSON();
+      }
+    }
+
     userData.gymMembership = membership ? { status: membership.status, gymId: membership.gymId, id: membership.id } : null;
     delete userData.gymMemberships;
     res.json(userData);
