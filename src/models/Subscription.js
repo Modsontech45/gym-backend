@@ -14,7 +14,7 @@ const Subscription = sequelize.define('Subscription', {
   sessionsUsed: { type: DataTypes.INTEGER, defaultValue: 0 },
   startDate: { type: DataTypes.DATEONLY, allowNull: false },
   endDate: { type: DataTypes.DATEONLY, allowNull: false },
-  status: { type: DataTypes.ENUM('actif', 'expire', 'suspendu', 'annule'), defaultValue: 'actif' },
+  status: { type: DataTypes.ENUM('en_attente', 'actif', 'expire', 'suspendu', 'annule'), defaultValue: 'actif' },
   notes: { type: DataTypes.TEXT },
 }, {
   tableName: 'subscriptions',

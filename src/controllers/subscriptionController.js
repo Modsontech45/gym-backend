@@ -145,6 +145,62 @@ exports.creditBalance = async (req, res) => {
   }
 };
 
+// Client self-requests a subscription (status = en_attente)
+exports.requestSubscription = async (req, res) => {
+  try {
+    const { planId } = req.body;
+    if (!planId) return res.status(400).json({ message: 'planId requis' });
+    const plan = await Plan.findByPk(planId);
+    if (!plan || !plan.isActive) return res.status(404).json({ message: 'Forfait introuvable ou inactif' });
+
+    // Prevent duplicate pending request for same plan
+    const existing = await Subscription.findOne({
+      where: { userId: req.user.id, planId, status: 'en_attente' },
+    });
+    if (existing) return res.status(409).json({ message: 'Vous avez déjà une demande en attente pour ce forfait' });
+
+    const today = new Date().toISOString().split('T')[0];
+    const endDate = computeEndDate(today, plan.planType);
+
+    const sub = await Subscription.create({
+      userId: req.user.id, planId, planName: plan.name, planType: plan.planType,
+      price: parseFloat(plan.price), balance: 0,
+      sessionsIncluded: plan.sessionsIncluded || 0, sessionsUsed: 0,
+      discountAmount: 0, startDate: today, endDate,
+      status: 'en_attente',
+    });
+    res.status(201).json(sub);
+  } catch (err) {
+    res.status(500).json({ message: 'Erreur serveur', error: err.message });
+  }
+};
+
+// Coach/admin approves a pending subscription
+exports.approveSubscription = async (req, res) => {
+  try {
+    const sub = await Subscription.findByPk(req.params.id);
+    if (!sub) return res.status(404).json({ message: 'Abonnement introuvable' });
+    if (sub.status !== 'en_attente') return res.status(400).json({ message: 'Cet abonnement n\'est pas en attente' });
+
+    const today = new Date().toISOString().split('T')[0];
+    const endDate = computeEndDate(today, sub.planType);
+    await sub.update({ status: 'actif', startDate: today, endDate, balance: parseFloat(sub.price) });
+
+    const user = await User.findByPk(sub.userId);
+    res.json(sub);
+    if (user) {
+      email.sendSubscriptionCreated({
+        firstName: user.firstName, email: user.email,
+        planName: sub.planName, planType: sub.planType,
+        balance: parseFloat(sub.price), sessionsIncluded: sub.sessionsIncluded,
+        startDate: today, endDate,
+      });
+    }
+  } catch (err) {
+    res.status(500).json({ message: 'Erreur serveur', error: err.message });
+  }
+};
+
 exports.mySubscriptions = async (req, res) => {
   try {
     const subs = await Subscription.findAll({
